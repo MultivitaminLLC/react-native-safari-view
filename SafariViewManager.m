@@ -29,7 +29,7 @@ RCT_EXPORT_MODULE()
 
 - (NSArray<NSString *> *)supportedEvents
 {
-    return @[@"SafariViewOnShow", @"SafariViewOnDismiss"];
+    return @[@"SafariViewOnShow", @"SafariViewOnDismiss", @"SafariViewOnRedirect"];
 }
 
 RCT_EXPORT_METHOD(show:(NSDictionary *)args resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
@@ -98,7 +98,9 @@ RCT_EXPORT_METHOD(isAvailable:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromi
 
 RCT_EXPORT_METHOD(dismiss)
 {
-    [_safariView dismissViewControllerAnimated:true completion:nil];
+    if (_safariView) {
+        [_safariView dismissViewControllerAnimated:true completion:nil];
+    }
 }
 
 -(void)safariViewControllerDidFinish:(nonnull SFSafariViewController *)controller
@@ -109,4 +111,14 @@ RCT_EXPORT_METHOD(dismiss)
         [self sendEventWithName:@"SafariViewOnDismiss" body:nil];
     }
 }
+
+- (void)safariViewController:(SFSafariViewController *)controller initialLoadDidRedirectToURL:(NSURL *)URL
+{
+    NSLog(@"[SafariView] SafariView redirected.");
+
+    if (hasListeners) {
+        [self sendEventWithName:@"SafariViewOnRedirect" body:URL.absoluteString];
+    }
+}
+
 @end
